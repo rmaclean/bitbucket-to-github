@@ -1,27 +1,43 @@
 import { join } from '@std/path';
-import { Bitbucket } from './repos/Bitbucket.ts';
-import { Github } from './repos/Github.ts';
+import { Bitbucket } from './actions/Bitbucket.ts';
+import { GitHub } from './actions/GitHub.ts';
 import '@std/dotenv/load';
-import { Spinner } from '@std/cli/unstable-spinner';
+import { Common } from './common.ts';
+import { LFS } from './actions/LFS.ts';
 
-// get all the bitbucket repositories we're going to transfer
 const pathToRepo = join(import.meta.dirname ?? '', 'repositories');
 Deno.env.set('PATH_TO_REPO', pathToRepo);
 console.log(`Will store repos into: ${pathToRepo}`);
 await Deno.mkdir(pathToRepo, { recursive: true });
 
-const spinner = new Spinner({ message: 'Migrating...', color: 'magenta' });
-spinner.start();
+const common = new Common();
+const lfs = new LFS();
 
-const repositories = await Bitbucket.getRepositories(spinner);
+const results: { name: string; state: string }[] = [];
 
-// create a new repository on Github for the repos
-const successfulCreates = await Github.createRepositories(spinner, repositories);
+for await (const repo of Bitbucket.getRepositories(common)) {
+  results.push({ name: repo.slug, state: '' });
+  const created = await GitHub.createRepository(common, repo);
+  if (created) {
+    results.find((r) => r.name === repo.slug)!.state = 'created';
+    const pulled = await Bitbucket.pullRepository(common, repo);
+    if (pulled) {
+      results.find((r) => r.name === repo.slug)!.state = 'pulled';
 
-// clone into a local folder
-const successfulClones = await Bitbucket.pullRepositories(spinner, successfulCreates);
+      await lfs.configuredLFS(common, join(pathToRepo, repo.slug));
 
-// push to Github
-const succesfulPushes = await Github.pushRepositories(spinner, successfulClones);
+      results.find((r) => r.name === repo.slug)!.state = 'lfs setup';
 
-console.log('Migrated the following repos sucessfully:\r\n', succesfulPushes.map((repo) => repo.slug).join('\r\n'));
+      const success = await GitHub.pushRepository(common, repo);
+      results.find((r) => r.name === repo.slug)!.state = success ? "done" : "failed push";
+    } else {
+      results.find((r) => r.name === repo.slug)!.state = 'failed pull';
+    }
+  } else {
+    results.find((r) => r.name === repo.slug)!.state = 'failed create';
+  }
+}
+
+common.spinner.stop();
+
+console.table(results);
