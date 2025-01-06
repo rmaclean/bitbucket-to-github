@@ -55,4 +55,9 @@ export class Common {
   info = (message: string): void => {
     this._log.push(`[INFO] ${message}`);
   }
+
+  reposToSkip = async (): Promise<string[]> => {
+    const skipContents = await Deno.readTextFile('skip.txt');
+    return skipContents.split('\n').filter((line) => !line.trim());
+  }
 }
