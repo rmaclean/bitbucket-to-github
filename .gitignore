@@ -1,4 +1,5 @@
 repositories
+skip.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/dotenv,windows,linux,macos,deno
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotenv,windows,linux,macos,deno
