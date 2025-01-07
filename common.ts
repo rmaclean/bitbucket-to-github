@@ -58,6 +58,6 @@ export class Common {
 
   reposToSkip = async (): Promise<string[]> => {
     const skipContents = await Deno.readTextFile('skip.txt');
-    return skipContents.split('\n').filter((line) => !line.trim());
+    return skipContents.split('\n').filter((line) => line.trim());
   }
 }

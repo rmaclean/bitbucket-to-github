@@ -16,7 +16,7 @@ const lfs = new LFS();
 const results: { name: string; state: string }[] = [];
 const reposToSkip = await common.reposToSkip();
 
-common.info(`Skipping repos: ${reposToSkip.join(', ')}`);
+console.log(`Skipping repos: ${reposToSkip.join(', ')}`);
 
 for await (const repo of Bitbucket.getRepositories(common)) {
   results.push({ name: repo.slug, state: '' });
