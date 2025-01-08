@@ -1,4 +1,4 @@
-import { IBitbucketRepos, IRepo } from "../types/IRepo.ts";
+import { IBitbucketRepos, IRepo } from '../types/IRepo.ts';
 import { Common } from '../common.ts';
 import { join } from '@std/path/join';
 
@@ -15,25 +15,25 @@ export class Bitbucket {
       throw new Error(`${pathToRepo} is not a directory`);
     }
 
-    const result = await common.runCommand("git rev-parse --is-bare-repository", pathToRepo);
-    return result.stdout === "true";
-  }
+    const result = await common.runCommand('git rev-parse --is-bare-repository', pathToRepo);
+    return result.stdout === 'true';
+  };
 
-  static async * getRepositories(common: Common) {
+  static async *getRepositories(common: Common) {
     let parsed: IBitbucketRepos | undefined = undefined;
     let currentPage = 1;
 
     do {
       const response = await fetch(
-        `https://api.bitbucket.org/2.0/repositories/${Deno.env.get("BITBUCKET_WORKSPACE")
-        }?page=${currentPage}`,
+        `https://api.bitbucket.org/2.0/repositories/${Deno.env.get('BITBUCKET_WORKSPACE')}?page=${currentPage}`,
         {
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Basic ${btoa(
-              `${Deno.env.get("BITBUCKET_USERNAME")}:${Deno.env.get("BITBUCKET_PASSWORD")
-              }`,
-            )}`,
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${
+              btoa(
+                `${Deno.env.get('BITBUCKET_USERNAME')}:${Deno.env.get('BITBUCKET_PASSWORD')}`,
+              )
+            }`,
           },
         },
       );
@@ -41,7 +41,7 @@ export class Bitbucket {
       if (response.ok) {
         parsed = await response.json();
         if (!parsed) {
-          common.error("Could not parse bitbucket info");
+          common.error('Could not parse bitbucket info');
           continue;
         }
 
@@ -59,24 +59,24 @@ export class Bitbucket {
 
   static async pullRepository(common: Common, repository: IRepo): Promise<boolean> {
     // path to the local repository
-    const pathToRepo = Deno.env.get("PATH_TO_REPO");
+    const pathToRepo = Deno.env.get('PATH_TO_REPO');
 
     if (!pathToRepo) {
-      throw new Error("PATH_TO_REPO is not set");
+      throw new Error('PATH_TO_REPO is not set');
     }
 
     // initialize a folder and git repo on this machine
     // add Bitbucket as a remote and pull
     // `repository.links.clone[0].href`?
-    const repoUrl = `https://${Deno.env.get("BITBUCKET_USERNAME")}:${Deno.env.get("BITBUCKET_PASSWORD")
-      }@bitbucket.org/${Deno.env.get("BITBUCKET_WORKSPACE")
-      }/${repository.slug}.git`;
+    const repoUrl = `https://${Deno.env.get('BITBUCKET_USERNAME')}:${
+      Deno.env.get('BITBUCKET_PASSWORD')
+    }@bitbucket.org/${Deno.env.get('BITBUCKET_WORKSPACE')}/${repository.slug}.git`;
 
     try {
       const alreadyCloned = await this.alreadyCloned(common, join(pathToRepo, repository.slug));
       if (alreadyCloned) {
         common.update(`Updating existing repo ${repository.slug}...`);
-        const result = await common.runCommand("git fetch", pathToRepo);
+        const result = await common.runCommand('git fetch', pathToRepo);
         return result.success;
       } else {
         common.update(`Cloning ${repository.slug}...`);

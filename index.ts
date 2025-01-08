@@ -37,7 +37,7 @@ for await (const repo of Bitbucket.getRepositories(common)) {
       results.find((r) => r.name === repo.slug)!.state = 'lfs setup';
 
       const success = await GitHub.pushRepository(common, repo);
-      results.find((r) => r.name === repo.slug)!.state = success ? "done" : "failed push";
+      results.find((r) => r.name === repo.slug)!.state = success ? 'done' : 'failed push';
     } else {
       results.find((r) => r.name === repo.slug)!.state = 'failed pull';
     }

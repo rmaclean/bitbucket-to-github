@@ -4,7 +4,7 @@ type CommandResult = {
   stdout: string;
   stderr: string;
   success: boolean;
-}
+};
 
 export class Common {
   private _log: string[] = [];
@@ -30,9 +30,9 @@ export class Common {
     return {
       stdout,
       stderr,
-      success: proc.success
+      success: proc.success,
     };
-  }
+  };
 
   public get log(): string[] {
     return this.log.slice();
@@ -46,18 +46,18 @@ export class Common {
     this._spinner.color = 'red';
     this._spinner.message = message;
     this._log.push(`[ERROR] ${message}`);
-  }
+  };
 
   update = (message: string): void => {
     this._spinner.message = message;
-  }
+  };
 
   info = (message: string): void => {
     this._log.push(`[INFO] ${message}`);
-  }
+  };
 
   reposToSkip = async (): Promise<string[]> => {
     const skipContents = await Deno.readTextFile('skip.txt');
     return skipContents.split('\n').filter((line) => line.trim());
-  }
+  };
 }
